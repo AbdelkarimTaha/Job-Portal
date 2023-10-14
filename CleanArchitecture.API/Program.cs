@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NLog;
+using NLog.Web;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -121,8 +122,15 @@ builder.Services.AddScoped<IVacancyService, VacancyService>();
 builder.Services.AddScoped<IUserVacanciesRepository, UserVacanciesRepository>();
 builder.Services.AddScoped<IRecurringJobService, RecurringJobService>();
 
+//Logger
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("init main");
+// NLog: Setup NLog for Dependency injection
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -147,7 +155,5 @@ RecurringJob.AddOrUpdate<IRecurringJobService>(
             "Archiving Expired Vacancies",
             x => x.ArchivingExpiredVacancies(),
             Cron.Daily);
-
-LogManager.LoadConfiguration("D:/Projects/CleanArchitecture/CleanArchitecture.API/nlog.config.xml"); 
 
 app.Run();
